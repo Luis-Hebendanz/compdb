@@ -15,7 +15,7 @@
       devShells = forAllSystems (system: {
         default = pkgs.${system}.mkShellNoCC {
           packages = with pkgs.${system}; [
-            (poetry2nix.mkPoetryEnv { projectDir = self; })
+           (poetry2nix.mkPoetryEnv { projectDir = self; })
             poetry
           ];
         };

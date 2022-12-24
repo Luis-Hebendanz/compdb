@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "compdb"
+version = "0.1.0"
+description = ""
+authors = ["Luis-Hebendanz <luis.nixos@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flake8 = "3.2.0"
+pep8-naming = "0.4.1"
+readme-renderer = "17.1"
+tox = "2.5.0"
+yapf = "0.19.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
