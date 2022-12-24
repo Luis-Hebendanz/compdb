@@ -12,12 +12,12 @@
         default = pkgs.${system}.poetry2nix.mkPoetryApplication { projectDir = self; };
       });
 
-      apps = forAllSystems (system: {
-        default = {
-          program = pkgs.${system}.callPackage packages.${system}.default { };
-          type = "app";
-        };
-      });
+    #  apps = forAllSystems (system: {
+    #    default = {
+    #      program = packages.${system}.default.dependencyEnv.outPath;
+    #      type = "app";
+    #    };
+    #  });
 
       devShells = forAllSystems (system: {
         default = pkgs.${system}.mkShellNoCC {
