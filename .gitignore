@@ -1,4 +1,5 @@
 __pycache__/
+.direnv
 *.pyc
 .tox/
 compdb.egg-info/

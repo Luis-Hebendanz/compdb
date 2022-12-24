@@ -7,11 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-flake8 = "3.2.0"
-pep8-naming = "0.4.1"
-readme-renderer = "17.1"
-tox = "2.5.0"
-yapf = "0.19.0"
+#flake8 = "*"
+#pep8-naming = "*"
+#readme-renderer = "*"
+#tox = "*"
+#yapf = "*"
+#hatchling = "^1.11.1"
 
 
 [build-system]
