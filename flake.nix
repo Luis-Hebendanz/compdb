@@ -7,15 +7,22 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
     in
-    {
+    rec {
       packages = forAllSystems (system: {
         default = pkgs.${system}.poetry2nix.mkPoetryApplication { projectDir = self; };
+      });
+
+      apps = forAllSystems (system: {
+        default = {
+          program = pkgs.${system}.callPackage packages.${system}.default { };
+          type = "app";
+        };
       });
 
       devShells = forAllSystems (system: {
         default = pkgs.${system}.mkShellNoCC {
           packages = with pkgs.${system}; [
-           (poetry2nix.mkPoetryEnv { projectDir = self; })
+            (poetry2nix.mkPoetryEnv { projectDir = self; })
             poetry
           ];
         };
