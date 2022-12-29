@@ -3,6 +3,8 @@ from __future__ import print_function, unicode_literals, absolute_import
 import logging
 import os
 import re
+import itertools
+import subprocess as sub
 
 from collections import deque
 
@@ -18,6 +20,52 @@ except NameError:
     FileNotFoundError = IOError
 
 logger = logging.getLogger(__name__)
+
+class SystemIncludeDirective(object):
+    def __init__(self):
+        self.compilers = dict()
+
+    def _get_lang(self, compiler):
+        base = os.path.basename(compiler)
+        if base == "clang++":
+            return "c++"
+        elif base == "clang":
+            return "c"
+        elif base == "cpp":
+            return "c++"
+        elif base == "g++":
+            return "c++"
+        elif base == "gcc":
+            return "c"
+        else:
+            logger.warn("Uknown compiler detected. Can't parse system include paths")
+            return None
+
+    def get_system_includes(self, compile_command):
+        compiler = os.path.realpath(compile_command.arguments[0])
+        lang = self._get_lang(compiler)
+
+        if lang is None:
+            return None
+
+        if compiler not in self.compilers.keys():
+            logger.debug(f"Computing new sysincludes for: {compiler}")
+            with open("/dev/null") as fnull:
+                p = sub.Popen([compiler, "-E", "-x", lang, "-", "-v"], stdin=fnull, stdout=sub.PIPE, stderr=sub.PIPE)
+                stdout, stderr = p.communicate(timeout=3)
+
+            data = stderr.decode("utf8").split("\n")
+
+            includes = set()
+            f = lambda data: itertools.takewhile(lambda x: x.startswith(" "), data)
+
+            for i, line in enumerate(data):
+                if '#include "..." search starts here:' in line or '#include <...> search starts here:' in line:
+                    res = set(map(lambda x: x.strip(" "), f(data[i+1:])))
+                    includes.update(res)
+            self.compilers.update({compiler: includes})
+            return includes
+        return self.compilers[compiler]
 
 
 class IncludeDirective(object):
@@ -39,6 +87,7 @@ class Preprocessor(object):
     def __init__(self):
         self.callbacks = []
         self._processed = set()
+        self.sysInclude = SystemIncludeDirective()
 
     def register_include_callback(self, cb):
         self.callbacks.append(cb)
@@ -46,6 +95,11 @@ class Preprocessor(object):
     def preprocess(self, compile_command):
         search_paths = compdb.complementer.headerdb.extract_include_dirs(
             compile_command)
+        sysinclude = self.sysInclude.get_system_includes(compile_command)
+
+       # logger.debug(f"sysinclude: ${sysinclude}")
+        search_paths = list(set(search_paths).union(sysinclude))
+
         includer_stack = [compile_command.normfile]
         if includer_stack[0] in self._processed:
             return

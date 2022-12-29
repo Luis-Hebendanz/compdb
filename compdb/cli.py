@@ -96,6 +96,7 @@ class ListCommand(Command):
         has_missing_files = False
         database = self._make_database(config)
         builder = compdb.includedb.IncludeIndexBuilder()
+        #print(database._layers[0][0].get_all_compile_commands(), file=sys.stderr)
         included_by_database = builder.build(database)
         with JSONCompileCommandSerializer(output_writer) as serializer:
             for file, compile_commands in self._gen_results(

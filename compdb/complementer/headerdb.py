@@ -2,10 +2,13 @@ from __future__ import print_function, unicode_literals, absolute_import
 
 import os
 import re
+import logging
 
 from compdb.backend.memory import InMemoryCompilationDatabase
 from compdb.complementer import ComplementerInterface
 from compdb.models import CompileCommand
+
+logger = logging.getLogger(__name__)
 
 
 def sanitize_compile_options(compile_command):
@@ -86,8 +89,9 @@ def get_file_includes(path):
 
 
 def extract_include_dirs(compile_command):
-    header_search_path = []
+    header_search_path = set()
     i = 0
+    logger.debug(f"compile_command: ${compile_command}")
     arguments = sanitize_compile_options(compile_command)
     while i < len(arguments):
         # -I <dir> and -I<dir> and similar
@@ -101,7 +105,7 @@ def extract_include_dirs(compile_command):
                     include_dir = arguments[i][len(opt):]
                 if opt == "-B":
                     include_dir = os.path.join(include_dir, "include")
-                header_search_path.append(include_dir)
+                header_search_path.update(include_dir)
         i += 1
     return [
         os.path.join(compile_command.directory, p) for p in header_search_path
