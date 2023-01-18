@@ -10,23 +10,37 @@
     in
     rec {
       packages = forAllSystems (system: {
-        default = myapp;
+        default =
+          let
+            spkgs = pkgs.${system};
+            pypkgs = pkgs.${system}.python310Packages;
+          in
+          pypkgs.buildPythonPackage {
+            pname = "compdb";
+            version = "0.2.0";
+            src = self;
+
+            doCheck = false;
+            checkInputs = with spkgs; [ pypkgs.pytest gcc coreutils ];
+            #propagatedBuildInputs = with pypkgs; [ click bashlex shutilwhich ];
+
+            checkPhase = ''
+              pytest
+            '';
+          };
       });
 
-    # apps = forAllSystems (system: {
-    #     default = {
-    #       program = pkgs.writeShellScriptBin "compdb" ''
-    #         ${pkgs.python}/bin/python ${myapp}/lib/python3.10/site-packages/compdb
-    #       '';
-    #       type = "app";
-    #     };
-    #   });
+
 
       devShells = forAllSystems (system: {
-        default = pkgs.${system}.mkShellNoCC {
-          packages = with pkgs.${system}; [
-            (poetry2nix.mkPoetryEnv { projectDir = self; })
-            poetry
+        default =
+          let
+            spkgs = pkgs.${system};
+            pypkgs = pkgs.${system}.python310Packages;
+          in
+          pkgs.${system}.mkShellNoCC {
+          packages = with spkgs; [
+            pypkgs.pytest gcc coreutils
           ];
         };
       });
